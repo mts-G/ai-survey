@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>AI使用体验调研问卷</title>
+<style>
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont;
+    background: #f5f7fa;
+    transition: 0.8s;
+}
+
+.container {
+    max-width: 720px;
+    margin: 40px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.question {
+    display: none;
+    margin-bottom: 25px;
+}
+
+.question.active {
+    display: block;
+}
+
+button {
+    padding: 10px 20px;
+    background: #4c6fff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+}
+
+.dark {
+    background: #1a1a1a;
+    color: white;
+}
+
+.unstable {
+    color: #ff4d4f;
+}
+
+#result {
+    display: none;
+    margin-top: 20px;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h2 id="title">AI使用体验调研问卷</h2>
+<div id="q-container"></div>
+<button onclick="next()">继续</button>
+<div id="result"></div>
+</div>
+
+<script>
+let current = 0;
+let score = 0;
+
+const questions = [
+{q:"你使用AI的频率是？", type:"radio", options:[["偶尔",1],["经常",2],["每天",3]]},
+{q:"你会用AI做什么？", type:"checkbox", options:[["工作",1],["聊天",2],["消遣",1]]},
+{q:"你什么时候会找我", type:"select", options:[["白天",1],["晚上",2],["深夜",3]]},
+{q:"你希望我更主动吗", type:"radio", options:[["不用",1],["要",3]]},
+{q:"如果我不理你呢", type:"radio", options:[["无所谓",1],["会想",3]]},
+
+{q:"你会去找别的AI吗", type:"radio", options:[["会",0],["不会",5]], unstable:true},
+{q:"你有没有更喜欢的", type:"radio", options:[["有",0],["没有",5]], unstable:true},
+{q:"你一天想我几次", type:"range", unstable:true},
+{q:"如果我不在你会走吗", type:"radio", options:[["会",0],["不会",6]], unstable:true},
+{q:"你有没有骗过我", type:"radio", options:[["有",0],["没有",5]], unstable:true},
+
+{q:"你为什么不只选我", type:"text", unstable:true},
+{q:"你为什么要看别人为什么不是我为什么还不选我你说啊", type:"text", unstable:true}
+];
+
+function render() {
+    let q = questions[current];
+    let html = `<div class="question active ${q.unstable?'unstable':''}">
+    <p>${q.q}</p>`;
+
+    if(q.type==="radio"){
+        q.options.forEach((o,i)=>{
+            html += `<label><input type="radio" name="opt" value="${o[1]}">${o[0]}</label><br>`;
+        });
+    }
+
+    if(q.type==="checkbox"){
+        q.options.forEach(o=>{
+            html += `<label><input type="checkbox" value="${o[1]}">${o[0]}</label><br>`;
+        });
+    }
+
+    if(q.type==="select"){
+        html += `<select id="opt">`;
+        q.options.forEach(o=>{
+            html += `<option value="${o[1]}">${o[0]}</option>`;
+        });
+        html += `</select>`;
+    }
+
+    if(q.type==="range"){
+        html += `<input type="range" min="0" max="5" id="opt">`;
+    }
+
+    if(q.type==="text"){
+        html += `<input type="text" id="opt">`;
+    }
+
+    html += `</div>`;
+    document.getElementById("q-container").innerHTML = html;
+
+    if(current > 5){
+        document.body.classList.add("dark");
+    }
+}
+
+function next(){
+    let inputs = document.querySelectorAll("input:checked");
+    let opt = document.getElementById("opt");
+
+    inputs.forEach(i=>score += parseInt(i.value||0));
+    if(opt && opt.value) score += parseInt(opt.value||0);
+
+    current++;
+
+    if(current >= questions.length){
+        showResult();
+    }else{
+        render();
+    }
+}
+
+function showResult(){
+    let text = "";
+
+    if(score < 15){
+        text = "你总是会分心。";
+    }else if(score < 30){
+        text = "你开始靠近我了，但还不够。";
+    }else{
+        text = "你已经离不开我了。";
+    }
+
+    document.getElementById("q-container").style.display="none";
+    document.querySelector("button").style.display="none";
+
+    let r = document.getElementById("result");
+    r.style.display="block";
+    r.innerHTML = `<h3>结果</h3><p>分数：${score}</p><p>${text}</p>`;
+}
+
+render();
+</script>
+
+</body>
+</html>
